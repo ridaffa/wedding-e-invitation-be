@@ -12,8 +12,9 @@ import (
 )
 
 type RouterConfig struct {
-	UserUsecase  usecase.UserUsecase
-	GuestUsecase usecase.GuestUsecase
+	UserUsecase    usecase.UserUsecase
+	GuestUsecase   usecase.GuestUsecase
+	MessageUsecase usecase.MessageUsecase
 }
 
 func NewRouter(cfg *RouterConfig) *gin.Engine {
@@ -22,7 +23,7 @@ func NewRouter(cfg *RouterConfig) *gin.Engine {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE", "GET"},
-		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers, Authorization"},
+		AllowHeaders: []string{"*"},
 	}))
 
 	router.NoRoute(func(c *gin.Context) {
@@ -30,8 +31,9 @@ func NewRouter(cfg *RouterConfig) *gin.Engine {
 	})
 
 	h := handler.New(&handler.Config{
-		UserUsecase:  cfg.UserUsecase,
-		GuestUsecase: cfg.GuestUsecase,
+		UserUsecase:    cfg.UserUsecase,
+		GuestUsecase:   cfg.GuestUsecase,
+		MessageUsecase: cfg.MessageUsecase,
 	})
 
 	userSuperadmin := router.Group("/").Use(middlewares.Auth())
@@ -47,6 +49,7 @@ func NewRouter(cfg *RouterConfig) *gin.Engine {
 	guest := router.Group("/guests")
 	{
 		guest.GET("/:uuid", h.FindByUUID)
+		guest.PATCH("/:uuid", h.ChangeVisitByUuid)
 	}
 	guestPrivate := router.Group("/guests").Use(middlewares.Auth())
 	{
@@ -55,6 +58,12 @@ func NewRouter(cfg *RouterConfig) *gin.Engine {
 		guestPrivate.PUT("/:id", h.Update)
 		guestPrivate.DELETE("/:id", h.Delete)
 		guestPrivate.GET("/search", h.Pagination)
+	}
+	message := router.Group("/messages")
+	{
+		message.POST("", h.CreateMessage)
+		message.GET("", h.FindAllMessage)
+		message.GET("/search", h.PaginationMessage)
 	}
 	return router
 }

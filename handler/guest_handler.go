@@ -121,3 +121,22 @@ func (h *Handler) Pagination(c *gin.Context) {
 	}
 	c.JSON(customutils.HandleSuccess(resGuest))
 }
+
+func (h *Handler) ChangeVisitByUuid(c *gin.Context) {
+	var id string = c.Param("uuid")
+	var requestBody *entity.VisitRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.JSON(customutils.HandleBadRequest(e.ErrBadRequest))
+		return
+	}
+	err := h.guestUsecase.ChangeVisitByUuid(id, requestBody)
+	if err != nil {
+		if err == e.ErrInternalServer {
+			c.JSON(customutils.HandleInternalServerError())
+			return
+		}
+		c.JSON(customutils.HandleBadRequest(err))
+		return
+	}
+	c.JSON(customutils.HandleSuccess("updated"))
+}

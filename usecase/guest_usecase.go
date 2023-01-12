@@ -15,6 +15,7 @@ type GuestUsecase interface {
 	Update(id uint, guest *entity.GuestDTO) (*entity.Guest, error)
 	Delete(id uint) error
 	Pagination(req *http.Request) (paginate.Page, error)
+	ChangeVisitByUuid(uuid string, req *entity.VisitRequest) error
 }
 
 type guestUsecaseImpl struct {
@@ -51,4 +52,14 @@ func (g *guestUsecaseImpl) Delete(id uint) error {
 
 func (g *guestUsecaseImpl) Pagination(req *http.Request) (paginate.Page, error) {
 	return g.guestRepository.Pagination(req)
+}
+
+func (g *guestUsecaseImpl) ChangeVisitByUuid(uuid string, req *entity.VisitRequest) error {
+	guest, err := g.guestRepository.FindByUUID(uuid)
+	if err != nil {
+		return err
+	}
+	guest.Visit = req.Visit
+	guest.Address = req.Address
+	return g.guestRepository.ChangeVisitByUuid(guest)
 }

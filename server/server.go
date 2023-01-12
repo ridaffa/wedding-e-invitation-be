@@ -23,6 +23,12 @@ func createRouter() *gin.Engine {
 		},
 	)
 
+	messageRepository := repository.NewMessageRepository(
+		&repository.MessageRConfig{
+			DB: db.Get(),
+		},
+	)
+
 	userUsecase := usecase.NewUserUsecase(
 		&usecase.UserUConfig{
 			UserRepository: userRepository,
@@ -36,9 +42,16 @@ func createRouter() *gin.Engine {
 		},
 	)
 
+	messageUsecase := usecase.NewMessageUsecase(
+		&usecase.MessageUConfig{
+			MessageRepository: messageRepository,
+		},
+	)
+
 	return NewRouter(&RouterConfig{
-		UserUsecase:  userUsecase,
-		GuestUsecase: guestUsecase,
+		UserUsecase:    userUsecase,
+		GuestUsecase:   guestUsecase,
+		MessageUsecase: messageUsecase,
 	})
 }
 

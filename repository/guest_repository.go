@@ -20,6 +20,7 @@ type GuestRepository interface {
 	Update(id uint, guest *entity.GuestDTO) (*entity.Guest, error)
 	Delete(id uint) error
 	Pagination(req *http.Request) (paginate.Page, error)
+	ChangeVisitByUuid(guest *entity.Guest) error
 }
 
 type guestRepositoryImpl struct {
@@ -88,8 +89,19 @@ func (g *guestRepositoryImpl) Delete(id uint) error {
 
 func (g *guestRepositoryImpl) Pagination(req *http.Request) (paginate.Page, error) {
 	var guests []*entity.Guest
-	model := g.db.Where("id > ?", 1).Model(guests)
+	model := g.db.Model(guests)
 	pg := paginate.New()
 	pages := pg.With(model).Request(req).Response(&[]*entity.Guest{})
 	return pages, nil
+}
+
+func (g *guestRepositoryImpl) ChangeVisitByUuid(guest *entity.Guest) error {
+	result := g.db.Model(guest).Where("uuid = ?", guest.UUID).Updates(guest)
+	if result.Error != nil {
+		if result.RowsAffected == 0 {
+			return e.ErrGuestNotFound
+		}
+		return e.ErrInternalServer
+	}
+	return nil
 }

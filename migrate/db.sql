@@ -89,6 +89,28 @@ ALTER TABLE public.users ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
     CACHE 1
 );
 
+CREATE TABLE IF NOT EXISTS public.messages
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    display_name character varying COLLATE pg_catalog."default" NOT NULL,
+    message character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    deleted_at timestamp with time zone,
+    guest_uuid character varying COLLATE pg_catalog."default",
+    CONSTRAINT messages_pkey PRIMARY KEY (id),
+    CONSTRAINT guest_fk FOREIGN KEY (guest_uuid)
+        REFERENCES public.guests (uuid) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE SET NULL
+        NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.messages
+    OWNER to postgres;
+
 
 --
 -- TOC entry 3335 (class 0 OID 16419)
